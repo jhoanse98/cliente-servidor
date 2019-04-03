@@ -46,9 +46,6 @@ if __name__ == "__main__":
 
     while True:
         funcion, archivo= socket.recv_multipart()
-        print("hola")
-        print(archivo)
-
         if funcion == b"subirarchivos":
             subirarchivos(archivo.decode())
 

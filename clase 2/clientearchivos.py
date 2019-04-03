@@ -15,7 +15,7 @@ if __name__ == "__main__":
 	#  Socket to talk to server
 	print("Connecting to hello world server...")
 	socket = context.socket(zmq.REQ) #me indica como van a interactuar cliente y servidor (REQ-> request)
-	socket.connect("tcp://10.253.4.31:5555")
+	socket.connect("tcp://localhost:5555")
 	socket.send_multipart([parametros[1].encode(), archivo.encode()])
 
 
@@ -40,8 +40,9 @@ if __name__ == "__main__":
 
 
 	if message == b"bajararchivos":
-		send(b"estan bajando un archivo")
+		socket.send(b"estan bajando un archivo")
 		tamaño = socket.recv()
+		print(tamaño.decode())
 		for i in range (0,ceil(int(tamaño)/1024)):
 			socket.send(b"ready")
 			archivito = socket.recv()
