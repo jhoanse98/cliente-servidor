@@ -61,6 +61,11 @@ if __name__ == "__main__":
 
 	if message == b"subearchivo":
 		print("Received reply  [ %s ]" % (message))
+		size= os.path.getsize(archivo)
+		str(size)
+		socket.send(size.encode())
+		message = socket.recv()
+		print(message.decode())
 		with open (archivo, 'rb') as archivoenviado:
 			for i in range(0,ceil(os.path.getsize(archivo)/1024)):
 				archivoenviado.seek(i*1024)

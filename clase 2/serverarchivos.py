@@ -61,13 +61,10 @@ socket.bind("tcp://*:5555")
 
 
 def subirarchivos(nombrearchivo):
-    filename, file_extension = os.path.splitext(nombrearchivo)
-    size= os.path.getsize(nombrearchivo)
-    print(ceil(size/1024))
-
-
     socket.send(b"subearchivo")
-    for i in range (0,ceil(size/1024)):
+    tamañoarchivo = socket.recv()
+    socket.send(b"procediendo a subir archivo")
+    for i in range (0,ceil(int(tamañoarchivo)/1024)):
         archivito = socket.recv()
         with open("archivosubido"+file_extension, 'ab') as archivo:
             archivo.write(archivito)
