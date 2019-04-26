@@ -22,6 +22,8 @@ b = [[2, 2, 2, 2, 2, 2, 2, 2],
 
 ########################################formulas del metodo strassen #############################################
 """
+# implementacion hecha con base a: https://github.com/stanislavkozlovski/Algorithms/blob/master/Coursera/algorithms_stanford/Strassen%20Matrix%20Multiplication/python/strassen.py
+
 p1= A*(F-H)
 P2= H*(A+B)
 P3= E*(C+D)
