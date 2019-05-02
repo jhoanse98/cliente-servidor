@@ -32,10 +32,13 @@ def main():
             elif result[0] == b'finish':
                 socket.send_multipart([ident,b'finish'])
             if(result[0] == b'4'):
-                print("ejecutando metodo 4")
+                print(result[5].decode())
+                if(int(result[5].decode())<=7):
+                    socket.send_multipart([ident, bytes(port,'ascii'), b'falta'])
                 shapes = [int(result[3].decode()), int(result[4].decode())]
                 Pn=strassen(result[1],result[2],True, shapes)
-                socket.send_multipart([ident, bytes(port,'ascii'), b'ok', np.array(Pn).tobytes()])
+                socket.send_multipart([ident, bytes(port,'ascii'), b'ok', np.array(Pn).tobytes(),result[5]])
+                print("se esta ejecutando una parte de matriz")
             
 
 if __name__ == '__main__':

@@ -69,11 +69,10 @@ b=np.array(b)
 
 
 def multimatriz2(a,b):
-	matriz= [a[0][0]*b[0][0]+a[0][1]*b[1][0],
-			 a[0][0]*b[0][1]+a[0][1]*b[1][1],
-			 a[1][0]*b[0][0]+a[1][1]*b[1][0],
-			 a[1][0]*b[0][1]+a[1][1]*b[1][1]]
-	return np.array(matriz).reshape(2,2)
+	a=np.array(a)
+	b=np.array(b)
+	matriz= a.dot(b)
+	return np.array(matriz).reshape(128,128)
 
 def sumamatriz(a,b):
 	c=[[a[i][j]+b[i][j] for j in range(len(a[i]))] for i in range(len(a))]
@@ -109,7 +108,7 @@ def strassen(matrizA, matrizB, bol, shapes):
 		matrizB = np.frombuffer(matrizB).reshape(shapes)
 	if obtendimensiones(matrizA) != obtendimensiones(matrizB):
 		raise Exception("Las matrices deben ser del mismo tamaño")
-	if obtendimensiones(matrizA) == (2,2):
+	if obtendimensiones(matrizA) == (128,128):
 		return multimatriz2(matrizA,matrizB)
 
 	
@@ -143,5 +142,5 @@ def strassen(matrizA, matrizB, bol, shapes):
 
 
 
-#print(sumamatriz(a,b))
+#pri}}}}}}}}}}}}nt(sumamatriz(a,b))
 #print(restamatriz(a,b))

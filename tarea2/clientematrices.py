@@ -16,28 +16,27 @@ def main():
         #socket.connect('tcp://localhost:4444')
         socket.connect('tcp://localhost:4444')
         socket.connect('tcp://localhost:4445')
-        #socket.connect('tcp://localhost:4446')
-        #socket.connect('tcp://localhost:4447')
-        #socket.connect('tcp://localhost:4448')
-        #socket.connect('tcp://localhost:4449')
-        #socket.connect('tcp://localhost:4450')
+        socket.connect('tcp://localhost:4446')
+        socket.connect('tcp://localhost:4447')
+        socket.connect('tcp://localhost:4448')
+        socket.connect('tcp://localhost:4449')
+        socket.connect('tcp://localhost:4450')
         #socket.connect('tcp://localhost:4445')
         #socket.connect('tcp://localhost:4446')                
         # Poller, objeto el cual esta pendiente de algunos sockets
         poller = zmq.Poller()
         poller.register(sys.stdin,zmq.POLLIN)
         poller.register(socket,zmq.POLLIN)
-        
+        b=1
         p=1
         #A = np.random.rand(1000,1000)
         #B = np.random.rand(1000,1000)
-        A = np.loadtxt(fname = "matrizA.txt",delimiter=',')
-        T = np.loadtxt(fname = "matrizB.txt",delimiter=',')
-        B = np.loadtxt(fname = "matrizB.txt",delimiter=',')
-        print(A)
-        print(T)
-        A=np.random.rand(64,64)
-        T=np.random.rand(64,64)
+        #A = np.loadtxt(fname = "matrizA.txt",delimiter=',')
+        #T = np.loadtxt(fname = "matrizB.txt",delimiter=',')
+        #B = np.loadtxt(fname = "matrizB.txt",delimiter=',')
+        
+        A=np.random.rand(4096,4096)
+        T=np.random.rand(4096,4096)
         aShape = A.shape
         bShape = T.shape
         row = 0
@@ -68,46 +67,71 @@ def main():
                 if method == '2' and row == bShape[0]:
                     result = result.reshape(aShape[0],bShape[1])
                 if len(sender) > 1 and method == '4':
-                    print ("estamos aqui")
-                    print(p)
-                    if p == 8:
-                        P7=np.frombuffer(sender[2]).reshape(Ashape,Ashape)
-                        top_left_matriz=restamatriz(sumamatriz(sumamatriz(P4,P5),P6),P2)
-                        top_right_matriz= sumamatriz(P1,P2)
-                        bottom_left_matriz=sumamatriz(P3,P4)
-                        bottom_right_matriz=restamatriz(restamatriz(sumamatriz(P1,P5),P3),P7)                        
-                        for i in range(len(top_right_matriz)):
-                            result.append(top_left_matriz[i]+ top_right_matriz[i])
-                        for i in range(len(bottom_right_matriz)):
-                            result.append(bottom_left_matriz[i]+ bottom_right_matriz[i])
-                    if p == 7:
-                        P6=np.frombuffer(sender[2]).reshape(Ashape,Ashape)
+                    if(sender[1]==b'falta'):
+                        if p == 7:
+                            #P6=np.frombuffer(sender[2]).reshape(Ashape,Ashape)
 
-                        socket.send_multipart([method.encode('ascii'),np.array(restamatriz(I,C)).tobytes(), np.array(sumamatriz(E,F)).tobytes(), str(Ashape).encode(), str(Ashape).encode()])
-                        p+=1
-                    if p == 6:
-                        P5=np.frombuffer(sender[2]).reshape(Ashape,Ashape)
-                        socket.send_multipart([method.encode('ascii'), np.array(restamatriz(B,D)).tobytes(), np.array(sumamatriz(G,H)).tobytes(), str(Ashape).encode(), str(Ashape).encode()])
-                        p+=1
-                    if p == 5:
-                        P4= np.frombuffer(sender[2]).reshape(Ashape,Ashape)
-                        socket.send_multipart([method.encode('ascii'), np.array(sumamatriz(I,D)).tobytes(), np.array(sumamatriz(E,H)).tobytes(), str(Ashape).encode(), str(Ashape).encode()])
-                        p+=1 
-                    if p == 4:
-                        P3 = np.frombuffer(sender[2]).reshape(Ashape,Ashape)
-                        socket.send_multipart([method.encode('ascii'), np.array(D).tobytes(), np.array(restamatriz(G,E)).tobytes(), str(Ashape).encode(), str(Ashape).encode()])
-                        p+=1
-                    if p == 3:
-                        print("aqui p es igual a 3")
-                        P2= np.frombuffer(sender[2]).reshape(Ashape,Ashape)
-                        socket.send_multipart([method.encode('ascii'), np.array(sumamatriz(C,D)).tobytes(), np.array(E).tobytes(),str(Ashape).encode(), str(Ashape).encode()])
-                        p+=1
-                    if p == 2:
-                        print("aqui p es igual a 2")
-                        P1=np.frombuffer(sender[2]).reshape(Ashape,Ashape)
-                        socket.send_multipart([method.encode('ascii'), np.array(sumamatriz(I,B)).tobytes(), np.array(H).tobytes(), str(Ashape).encode(), str(Ashape).encode()])
-                        p+=1
-                        print(p)
+                            socket.send_multipart([method.encode('ascii'),np.array(restamatriz(I,C)).tobytes(), np.array(sumamatriz(E,F)).tobytes(), str(Ashape).encode(), str(Ashape).encode(), str(p).encode()])
+                            p+=1
+                        if p == 6:
+                            #P5=np.frombuffer(sender[2]).reshape(Ashape,Ashape)
+                            socket.send_multipart([method.encode('ascii'), np.array(restamatriz(B,D)).tobytes(), np.array(sumamatriz(G,H)).tobytes(), str(Ashape).encode(), str(Ashape).encode(), str(p).encode()])
+                            p+=1
+                        if p == 5:
+                            #P4= np.frombuffer(sender[2]).reshape(Ashape,Ashape)
+                            socket.send_multipart([method.encode('ascii'), np.array(sumamatriz(I,D)).tobytes(), np.array(sumamatriz(E,H)).tobytes(), str(Ashape).encode(), str(Ashape).encode(), str(p).encode()])
+                            p+=1 
+                        if p == 4:
+                            #P3 = np.frombuffer(sender[2]).reshape(Ashape,Ashape)
+                            socket.send_multipart([method.encode('ascii'), np.array(D).tobytes(), np.array(restamatriz(G,E)).tobytes(), str(Ashape).encode(), str(Ashape).encode(), str(p).encode()])
+                            p+=1
+                        if p == 3:
+                            print("aqui p es igual a 3")
+                            #P2= np.frombuffer(sender[2]).reshape(Ashape,Ashape)
+                            socket.send_multipart([method.encode('ascii'), np.array(sumamatriz(C,D)).tobytes(), np.array(E).tobytes(),str(Ashape).encode(), str(Ashape).encode(), str(p).encode()])
+                            p+=1
+                        if p == 2:
+                            print("aqui p es igual a 2")
+                            #P1=np.frombuffer(sender[2]).reshape(Ashape,Ashape)
+                            socket.send_multipart([method.encode('ascii'), np.array(sumamatriz(I,B)).tobytes(), np.array(H).tobytes(), str(Ashape).encode(), str(Ashape).encode(), str(p).encode()])
+                            p+=1
+                            print(p)
+                    else:
+                    	pn = int(sender[3].decode())
+                    	if pn == 1:
+                    		P1=np.frombuffer(sender[2]).reshape(Ashape,Ashape)
+                    		b+=1
+                    	if pn == 2:
+                    		P2=np.frombuffer(sender[2]).reshape(Ashape,Ashape)
+                    		b+=1
+                    	if pn == 3:
+                    		P3=np.frombuffer(sender[2]).reshape(Ashape,Ashape)
+                    		b+=1
+                    	if pn == 4:
+                    		P4=np.frombuffer(sender[2]).reshape(Ashape,Ashape)
+                    		b+=1
+                    	if pn == 5:
+                    		P5=np.frombuffer(sender[2]).reshape(Ashape,Ashape)
+                    		b+=1
+                    	if pn == 6:
+                    		P6=np.frombuffer(sender[2]).reshape(Ashape,Ashape)
+                    		b+=1
+                    	if pn == 7:
+                    		P7=np.frombuffer(sender[2]).reshape(Ashape,Ashape)
+                    		b+=1
+
+                    if b==8 and sender[1]==b'ok':
+                            top_left_matriz=restamatriz(sumamatriz(sumamatriz(P4,P5),P6),P2)
+                            top_right_matriz= sumamatriz(P1,P2)
+                            bottom_left_matriz=sumamatriz(P3,P4)
+                            bottom_right_matriz=restamatriz(restamatriz(sumamatriz(P1,P5),P3),P7)                        
+                            for i in range(len(top_right_matriz)):
+                                result.append(top_left_matriz[i]+ top_right_matriz[i])
+                            for i in range(len(bottom_right_matriz)):
+                                result.append(bottom_left_matriz[i]+ bottom_right_matriz[i])
+
+
+                    
                     
 
                 if sender[0] == b'finish':
@@ -136,10 +160,9 @@ def main():
                 I,B,C,D = dividematriz(A)
                 E,F,G,H = dividematriz(T)
                 Ashape= len(I)
-                p+=1
                 print(p)
-                socket.send_multipart([method.encode('ascii'), np.array(I).tobytes(), np.array(restamatriz(F,H)).tobytes(), str(Ashape).encode(), str(Ashape).encode() ])
-                
+                socket.send_multipart([method.encode('ascii'), np.array(I).tobytes(), np.array(restamatriz(F,H)).tobytes(), str(Ashape).encode(), str(Ashape).encode(), str(p).encode()])
+                p+=1
 
             
             if np.array(result).shape == (aShape[0],bShape[1]):
