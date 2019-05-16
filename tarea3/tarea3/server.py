@@ -1,6 +1,8 @@
 import zmq
 import sys
 
+MAX_BUFFER=1024*1024*1
+
 if __name__ == "__main__":
     context = zmq.Context()
     socketProxy = context.socket(zmq.REQ)
@@ -8,7 +10,7 @@ if __name__ == "__main__":
 
 
     port = sys.argv[1]
-    socketRecv = context.socket(zmq.ROUTER)
+    socketRecv = context.socket(zmq.REP)
     socketRecv.bind('tcp://*:{}'.format(port))
 
     address = 'localhost:{}'.format(port).encode('ascii')
@@ -21,17 +23,18 @@ if __name__ == "__main__":
     while True:
         responseClient = socketRecv.recv_multipart()
         print(responseClient[0])
-        if responseClient[1] == b'sending':
-            namefile= responseClient[2].decode()
+        if responseClient[0] == b'sending':
+            namefile= responseClient[1].decode()
             print("Vamos a subir un archivo")
             with open(namefile,'ab') as f:
                         #print(message[0])
-                        f.write(responseClient[3])
-        if responseClient[1] == b'downloading':
+                        f.write(responseClient[2])
+            socketRecv.send_multipart([b'ok'])
+        if responseClient[0] == b'downloading':
             print('bajando un archivo')
-            with open(responseClient[2].decode(),'rb') as download:
-                data=download.read()
-                socketRecv.send_multipart([responseClient[0],b'downloading', data])
+            with open(responseClient[1].decode(),'rb') as download:
+                data=download.read(MAX_BUFFER)
+                socketRecv.send_multipart([b'downloading', data])
                 print('se esta bajando un archivito')
 
 

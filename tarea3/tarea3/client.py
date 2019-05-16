@@ -9,7 +9,7 @@ import sys
 
 
 
-def getHashis(archivo,size,MAX_BUFFER = 1024*1024*10):
+def getHashis(archivo,size,MAX_BUFFER = 1024*1024*1):
     l = []
     hashcomplete=hasher.hasheador(archivo,size,MAX_BUFFER).encode()
     l.append(hashcomplete)
@@ -20,6 +20,7 @@ def getHashis(archivo,size,MAX_BUFFER = 1024*1024*10):
             data=f.read(MAX_BUFFER)
             hashi=hasher.hashitos(data)
             l.append(hashi.encode())
+    print(l[-1].decode())
     return l
 
 if __name__ == "__main__":
@@ -27,7 +28,7 @@ if __name__ == "__main__":
     socketproxy=context.socket(zmq.REQ)
     socketproxy.connect("tcp://localhost:5555")
     
-    MAX_BUFFER=1024*1024*10
+    MAX_BUFFER=1024*1024*1
 
     #socketproxy.send_multipart(hashlist)
 
@@ -53,6 +54,7 @@ if __name__ == "__main__":
             archivo = op[1]
             filename, file_extension = os.path.splitext(archivo)
             size= os.path.getsize(archivo)
+
             print('Obteniendo lista de servidores')
             hashlist=[b'client',b'send',filename.encode(),file_extension.encode()]
             hashish = getHashis(archivo,size)
@@ -66,18 +68,22 @@ if __name__ == "__main__":
                 print("Procesando")
                 i = 0
                 for r in response:
+
                     with open(archivo,'rb') as f:
-                        f.seek((i*MAX_BUFFER)+1)
+                        f.seek((i*MAX_BUFFER))
                         data=f.read(MAX_BUFFER)
                     hashname=hashish[i+1]
                     if r.decode() in servers:
                         servers[r.decode()].send_multipart([b'sending',hashname,data])
+                        servers[r.decode()].recv_multipart()
                     else:
-                        servers[r.decode()] = context.socket(zmq.DEALER)
+                        servers[r.decode()] = context.socket(zmq.REQ)
                         socket = servers[r.decode()]
                         socket.identity = identity
                         socket.connect("tcp://{}".format(r.decode()))
                         socket.send_multipart([b'sending',hashname,data])
+                        print("primer dovket")
+                        socket.recv_multipart()
                     i+=1
                 print("Terminado\t\n")
                 print("Archivo guardado como: {}".format(hashish[0].decode()))
@@ -114,15 +120,29 @@ if __name__ == "__main__":
                 		indice+=1
                 		print(indice)
                 	else:
-                		serversend[ip]=context.socket(zmq.DEALER)
+                		print('entro aqui antes del error')
+                		serversend[ip]=context.socket(zmq.REQ)
                 		socket=serversend[ip]
-                		socket.identity=identity
+                		print('la ip es:{}, el hash almacenado es:{}'.format(ip, serverhashis[indice]))
+                		#socket.identity=identity
+                		print(ip)
                 		socket.connect("tcp://{}".format(ip))
                 		socket.send_multipart([b'downloading', serverhashis[indice].encode()])
                 		print('estamos en else')
-                		data=serversend[ip].recv_multipart()
+                		data=socket.recv_multipart()
                 		print('estamos despues de recv')
+                		#print(data[1].decode())
                 		with open(fullName, 'ab') as descarga:
                 			descarga.write(data[1])
                 		indice+=1
                 		print(indice)
+
+#1395c3448613e84e833b0e4d6ddd8164905a45019c3b82945cfe621257226437 lorem2
+#b5a6b8847a60077e0b2f8145e4cd019aa5debe8e51abd53f72f6ad9bad647f80 escenario1.mp3
+#b8262c303e3d54a16ff158ffb1a610742767cb2fe7554403129feeae2ac293a4 docker2.mp4
+#d113def071ec95e92d411e4469bcb1f6025ccd1bdf83bb7258bb54b3c1fa9b63 docker4.mp4
+#1f50e8408c92eca484e162384b91ebdccad1a74d96200bdb1655b816f89515e0 docker.pptx funciono
+#5c5a1664db46b91bdf33dfee446827ae4d03c2f919881eb5f24d0ca503bde20d docker6.mp4 funciono
+#52c976a83457cc8de117cc3493ea46b37fe629c2962b901510aebc3ba6c355c8 docker7.mp4
+
+
