@@ -82,7 +82,6 @@ if __name__ == "__main__":
                         socket.identity = identity
                         socket.connect("tcp://{}".format(r.decode()))
                         socket.send_multipart([b'sending',hashname,data])
-                        print("primer dovket")
                         socket.recv_multipart()
                     i+=1
                 print("Terminado\t\n")
@@ -109,8 +108,6 @@ if __name__ == "__main__":
                 serverip = [values for values in servers.values()]
                 serverhashis=[keys for keys in servers.keys()]
                 for ip in serverip:
-                	print('hola')
-                	print(ip)
                 	if ip in serversend:
                 		serversend[ip].send_multipart([b'downloading',serverhashis[indice].encode()])
                 		print('la ip es:{}, el hash almacenado es:{}'.format(ip, serverhashis[indice]))
@@ -120,17 +117,13 @@ if __name__ == "__main__":
                 		indice+=1
                 		print(indice)
                 	else:
-                		print('entro aqui antes del error')
                 		serversend[ip]=context.socket(zmq.REQ)
                 		socket=serversend[ip]
                 		print('la ip es:{}, el hash almacenado es:{}'.format(ip, serverhashis[indice]))
                 		#socket.identity=identity
-                		print(ip)
                 		socket.connect("tcp://{}".format(ip))
                 		socket.send_multipart([b'downloading', serverhashis[indice].encode()])
-                		print('estamos en else')
                 		data=socket.recv_multipart()
-                		print('estamos despues de recv')
                 		#print(data[1].decode())
                 		with open(fullName, 'ab') as descarga:
                 			descarga.write(data[1])
@@ -143,6 +136,6 @@ if __name__ == "__main__":
 #d113def071ec95e92d411e4469bcb1f6025ccd1bdf83bb7258bb54b3c1fa9b63 docker4.mp4
 #1f50e8408c92eca484e162384b91ebdccad1a74d96200bdb1655b816f89515e0 docker.pptx funciono
 #5c5a1664db46b91bdf33dfee446827ae4d03c2f919881eb5f24d0ca503bde20d docker6.mp4 funciono
-#52c976a83457cc8de117cc3493ea46b37fe629c2962b901510aebc3ba6c355c8 docker7.mp4
+#52c976a83457cc8de117cc3493ea46b37fe629c2962b901510aebc3ba6c355c8 docker7.mp4 funciono
 
 
