@@ -1,20 +1,21 @@
 import zmq
 import sys
 
-MAX_BUFFER=1024*1024*1
+MAX_BUFFER=1024*1024*100
 
 if __name__ == "__main__":
+    ipProxy = sys.argv[1]
     context = zmq.Context()
     socketProxy = context.socket(zmq.REQ)
-    socketProxy.connect("tcp://localhost:5555")
+    socketProxy.connect("tcp://{}:5555".format(ipProxy))
 
-
-    port = sys.argv[1]
+    ipServer = sys.argv[2]
+    port = sys.argv[3]
     socketRecv = context.socket(zmq.REP)
     socketRecv.bind('tcp://*:{}'.format(port))
 
-    address = 'localhost:{}'.format(port).encode('ascii')
-    numPetitions = sys.argv[2].encode('ascii')
+    address = '{}:{}'.format(ipServer,port).encode('ascii')
+    numPetitions = sys.argv[4].encode('ascii')
     socketProxy.send_multipart([b'server',address,numPetitions])
     response = socketProxy.recv_multipart()
 
@@ -36,6 +37,3 @@ if __name__ == "__main__":
                 data=download.read(MAX_BUFFER)
                 socketRecv.send_multipart([b'downloading', data])
                 print('se esta bajando un archivito')
-
-
-                        
