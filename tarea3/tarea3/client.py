@@ -9,7 +9,7 @@ import sys
 
 
 
-def getHashis(archivo,size,MAX_BUFFER = 1024*1024*10):
+def getHashis(archivo,size,MAX_BUFFER = 1024*1024*100):
     l = []
     hashcomplete=hasher.hasheador(archivo,size,MAX_BUFFER).encode()
     l.append(hashcomplete)
@@ -20,14 +20,15 @@ def getHashis(archivo,size,MAX_BUFFER = 1024*1024*10):
             data=f.read(MAX_BUFFER)
             hashi=hasher.hashitos(data)
             l.append(hashi.encode())
+    print(l[-1].decode())
     return l
 
 if __name__ == "__main__":
     context=zmq.Context()
     socketproxy=context.socket(zmq.REQ)
-    socketproxy.connect("tcp://localhost:5555")
-    
-    MAX_BUFFER=1024*1024*10
+    socketproxy.connect("tcp://192.168.8.181:5555")
+
+    MAX_BUFFER=1024*1024*100
 
     #socketproxy.send_multipart(hashlist)
 
@@ -48,16 +49,17 @@ if __name__ == "__main__":
             print('Lista de Comandos:\n\t')
             print('* send filename\n')
             print('* download filename\n')
-        
+
         elif op[0] == 'send':
             archivo = op[1]
             filename, file_extension = os.path.splitext(archivo)
             size= os.path.getsize(archivo)
+
             print('Obteniendo lista de servidores')
             hashlist=[b'client',b'send',filename.encode(),file_extension.encode()]
             hashish = getHashis(archivo,size)
             hashlist +=hashish
-            
+
             socketproxy.send_multipart(hashlist)
             status, *response = socketproxy.recv_multipart()
             if status == b'error':
@@ -66,23 +68,26 @@ if __name__ == "__main__":
                 print("Procesando")
                 i = 0
                 for r in response:
+
                     with open(archivo,'rb') as f:
-                        f.seek((i*MAX_BUFFER)+1)
+                        f.seek((i*MAX_BUFFER))
                         data=f.read(MAX_BUFFER)
                     hashname=hashish[i+1]
                     if r.decode() in servers:
                         servers[r.decode()].send_multipart([b'sending',hashname,data])
+                        servers[r.decode()].recv_multipart()
                     else:
-                        servers[r.decode()] = context.socket(zmq.DEALER)
+                        servers[r.decode()] = context.socket(zmq.REQ)
                         socket = servers[r.decode()]
                         socket.identity = identity
                         socket.connect("tcp://{}".format(r.decode()))
                         socket.send_multipart([b'sending',hashname,data])
+                        socket.recv_multipart()
                     i+=1
                 print("Terminado\t\n")
                 print("Archivo guardado como: {}".format(hashish[0].decode()))
         elif op[0] == 'download':
-            indice=0            
+            indice=0
             archivo = op[1]
             print('Obteniendo lista de servidores')
             lista = [b'client',b'download',archivo.encode()]
@@ -103,8 +108,6 @@ if __name__ == "__main__":
                 serverip = [values for values in servers.values()]
                 serverhashis=[keys for keys in servers.keys()]
                 for ip in serverip:
-                	print('hola')
-                	print(ip)
                 	if ip in serversend:
                 		serversend[ip].send_multipart([b'downloading',serverhashis[indice].encode()])
                 		print('la ip es:{}, el hash almacenado es:{}'.format(ip, serverhashis[indice]))
@@ -114,14 +117,14 @@ if __name__ == "__main__":
                 		indice+=1
                 		print(indice)
                 	else:
-                		serversend[ip]=context.socket(zmq.DEALER)
+                		serversend[ip]=context.socket(zmq.REQ)
                 		socket=serversend[ip]
-                		socket.identity=identity
+                		print('la ip es:{}, el hash almacenado es:{}'.format(ip, serverhashis[indice]))
+                		#socket.identity=identity
                 		socket.connect("tcp://{}".format(ip))
                 		socket.send_multipart([b'downloading', serverhashis[indice].encode()])
-                		print('estamos en else')
-                		data=serversend[ip].recv_multipart()
-                		print('estamos despues de recv')
+                		data=socket.recv_multipart()
+                		#print(data[1].decode())
                 		with open(fullName, 'ab') as descarga:
                 			descarga.write(data[1])
                 		indice+=1

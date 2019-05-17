@@ -1,9 +1,9 @@
-    
+
 import os
 import hashlib
 from math import ceil
 
-def hasheador(archivo,size,MAX_BUFFER = 1024*1024*10):
+def hasheador(archivo,size,MAX_BUFFER = 1024*1024*100):
     hasher = hashlib.sha256()
     #size= os.path.getsize('Lession_2.mp4.mp4')
     with open(archivo,'rb') as f:
