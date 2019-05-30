@@ -41,12 +41,13 @@ if __name__ == "__main__":
         displaySocket.connect("tcp://localhost:9999")
 
         
-        if  len(sys.argv )== 6:
+        if  len(sys.argv )== 7:
             successAddress = sys.argv[1]
             myPort = sys.argv[2]
             clientPort = sys.argv[3]
-            ID = sys.argv[4]
-            status = sys.argv[5]
+            successAddressClient=sys.argv[4]
+            ID = sys.argv[5]
+            status = sys.argv[6]
             
             
         else:
@@ -75,7 +76,7 @@ if __name__ == "__main__":
             newSocket = context.socket(zmq.DEALER)
             newSocket.identity = ID.encode()
             newSocket.connect("tcp://{}".format(successAddress))
-            newSocket.send_multipart([b'new',ID.encode(),myPort.encode()])
+            newSocket.send_multipart([b'new',ID.encode(),myPort.encode(),clientPort.encode()])
             poller.register(newSocket,zmq.POLLIN)
             displaySocket.send_multipart([b'new', ID.encode(), myPort.encode(), successAddress.encode(), newSocket.identity, b'79'])
         else:
@@ -85,19 +86,16 @@ if __name__ == "__main__":
         predID = 0
         print("corriendo server")
         while True:
-            socks = dict(poller.poll(2048))
+            socks = dict(poller.poll(1024))
             if predSocket in socks:
                 print("PREDSOCKET")
                 op,*message = predSocket.recv_multipart()
                 print(op,message)
                 if op == b'id':
-                    #print("recibo algo")
-                    #print(message)
                     predID = int(message[0].decode())
                     myInterval = update(int(ID),predID)
                     displaySocket.send_multipart([b'id', str(predID).encode(), ID.encode()])
                     print(myInterval)
-                    #print(type(myInterval))
 
                 if op == b'updateSuccs':
                     if message[0].decode()==ID:
@@ -105,31 +103,21 @@ if __name__ == "__main__":
                         print("mi nuevo sucesor es: {}".format(message[3].decode()))
                         #print(successAddress)
                         successSocket.disconnect("tcp://{}".format(successAddress))
-                        time.sleep(5)
                         successAddress="localhost:{}".format(message[1].decode())
+                        successAddressClient="localhost:{}".format(message[4].decode())
+                        time.sleep(5)
                         successSocket.connect("tcp://{}".format(successAddress))
                         #print(successAddress)
                         successSocket.send_multipart([b'idNew', ID.encode()])
+
                     else:
-                        print("mi sucesor no es: {}".format(message[3]))
-                        successSocket.send_multipart([b'updateSuccs', message[0], message[1], message[2], message[3]])
-
-
-                    """
-                    displaySocket.send_multipart([ID.encode(), b'updateSuccs', successAddress.encode()])
-                    successSocket.disconnect("tcp://{}".format(successAddress))
-                    successAddress = "localhost:{}".format(message[1].decode())
-                    print(" new success adress {}".format(successAddress))
-                    print(myInterval)
-                    successSocket.connect("tcp://{}".format(successAddress))
-                    successSocket.send_multipart([b'idNew',ID.encode()])
-                    displaySocket.send_multipart([b'desconexion de ',successAddress.encode(), str(predID).encode(), str(myInterval).encode(), b'nueva conexion con: ', successAddress.encode(), b'109'])
-                    """
+                        print("mi sucesor no es: {}".format(message[3].decode()))
+                        print("mi succesor es:{}".format(successAddress))
+                        successSocket.send_multipart([b'updateSuccs', message[0], message[1], message[2], message[3],message[4]])
 
                 if op == b'idNew':
                     print("update interval")
                     myInterval = update(int(ID),int(message[0].decode()))
-
                     print(myInterval)
 
             if clientSocket in socks:
@@ -139,48 +127,38 @@ if __name__ == "__main__":
                 if op == b'new':
                     newID = int(message[0].decode())
                     newPort = message[1].decode()
+                    NewsuccessAddressClient=message[2].decode()
                     if newID in myInterval:
                         print("yes")
-                        successSocket.send_multipart([b'updateSuccs',str(predID).encode(), message[1], ID.encode(), str(newID).encode()])
+                        successSocket.send_multipart([b'updateSuccs',str(predID).encode(), message[1], ID.encode(), str(newID).encode(),message[2]])
                         time.sleep(5)
-                        clientSocket.send_multipart([who,b'updatePred',myPort.encode(),successAddress.encode(), clientPort.encode(),str(predID).encode()])
-
-                        """
-                        print("yes")
-                        print("nuevo puerto de predecesor : {}".format(newPort))
-                        displaySocket.send_multipart([ID.encode(), b'escucho a mi predecesor por: ', myPort.encode(), b'mi sucesor es: ', successAddress.encode() ])
-                        successSocket.send_multipart([b'updateSuccs',str(newID).encode(),newPort.encode()]) #aqui esta problema 
-                        #successSocket.disconnect("tcp://{}".format(successAddress))
-                        displaySocket.send_multipart([b'updateSuccs', str(newID).encode(), newPort.encode(),successAddress.encode()])
-                        clientSocket.send_multipart([who,b'updatePred',myPort.encode(),successAddress.encode(), clientPort.encode()])
-                        
-                        print("hola no deberia salir")
-                        #successSocket.disconnect("tcp://{}".format(successAddress))
-                        """
-                        """newSuccsAddrs = "localhost:{}".format(newPort)
-                        successSocket.connect("tcp://{}".format(newSuccsAddrs))
-                        print(newSuccsAddrs)
-                        successSocket.send_multipart([b'test',ID.encode(),b'no deberia estar aqui'])"""
-                        
+                        clientSocket.send_multipart([who,b'updatePred',myPort.encode(),successAddress.encode(), successAddressClient.encode(),str(predID).encode()])
+                        predID=newID
                     else:
-                        print("no")
-                    predID=newID
+                        print("je ne sais pas")
+                        print(successAddressClient)
+                        clientSocket.send_multipart([who, b'newConnection', successAddressClient.encode(),clientPort.encode()]) 
+                
                     
             if newSocket and newSocket in socks:
                 print('NEWSOCKET')
                 status, *message = newSocket.recv_multipart()
                 if status == b'updatePred':
-                	#newSocket.disconnect("tcp://localhost:{}".format(message[2].decode))
-                    #print(message)
-                    #print("port: {}".format(message[0].decode()))
+                    print(successAddress)
                     successAddress = 'localhost:{}'.format(message[0].decode())
+                    print("yo soy {} y mi sucesor es:{}".format(ID,successAddress))
                     predID=int(message[3].decode())
-                    #print(successAddress)
+                    successAddressClient=message[2].decode()
                     successSocket.connect("tcp://{}".format(successAddress))
-                    #print("Id nuevo servidor: {}".format(ID))
                     time.sleep(5)
-                    #print(ID)
-                    #print(successAddress)
+                    print(ID)
                     successSocket.send_multipart([b'idNew',ID.encode()])
-                    #print(ID)
-                    #print(successAddress)
+                if status == b'newConnection':
+                    print("no esta, toca nueva conexion")
+                    print(message[1].decode())
+                    print(successAddress)
+                    newSocket.disconnect("tcp://localhost:{}".format(message[1].decode()))
+                    print(message[0].decode())
+                    newSocket.connect("tcp://{}".format(message[0].decode()))
+                    time.sleep(5)
+                    newSocket.send_multipart([b'new',ID.encode(),myPort.encode(),successAddressClient.encode()])
